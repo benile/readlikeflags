@@ -8,8 +8,20 @@ var on bool=true
 func Exit(){
 	on=false
 }
-func StartSession(commands []cli.Command,readlineConfig *readline.Config,usage string,version string){
-	items:=make([] *readline.PrefixCompleter,10)
+type Options struct{
+	Commands []cli.Command
+	ReadlineConfig *readline.Config
+	Usage string
+	Version string
+	ErrorHandler func(err error)
+	AppName string
+}
+func StartSession(options Options){
+	commands:=options.Commands
+	readlineConfig:=options.ReadlineConfig
+	usage:=options.Usage
+	version:=options.Version
+	items:=make([] *readline.PrefixCompleter,0)
 	items=append(items,readline.PcItem("help"));
 	for _,cmd:=range commands{
 		items=append(items,readline.PcItem(cmd.Name))
@@ -31,7 +43,22 @@ func StartSession(commands []cli.Command,readlineConfig *readline.Config,usage s
 	app.Usage=usage
 	app.Version=version
 	app.Commands=commands
+	app.BuildinApp=true
+	app.Name=options.AppName
+	startLoop(app,rl, options.ErrorHandler)
+
+}
+func startLoop(app *cli.App,rl *readline.Instance ,errorHandler func(err error)){
 	for on==true{
+		defer func() {
+			if r := recover(); r != nil {
+				if err,ok:=r.(error);ok{
+					errorHandler(err)
+					startLoop(app,rl,errorHandler)
+				}
+
+			}
+		}()
 		line, err := rl.Readline()
 		if err != nil {
 			break
@@ -48,5 +75,4 @@ func StartSession(commands []cli.Command,readlineConfig *readline.Config,usage s
 			app.RunInside(args)
 		}
 	}
-
 }
