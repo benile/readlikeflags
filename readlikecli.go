@@ -23,6 +23,7 @@ func StartSession(options Options){
 	version:=options.Version
 	items:=make([] *readline.PrefixCompleter,0)
 	items=append(items,readline.PcItem("help"));
+	items=append(items,readline.PcItem("version"));
 	for _,cmd:=range commands{
 		items=append(items,readline.PcItem(cmd.Name))
 	}
