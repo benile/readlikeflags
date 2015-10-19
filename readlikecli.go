@@ -3,6 +3,7 @@ import (
 "github.com/benile/cli"
 "github.com/chzyer/readline"
 	"strings"
+	"fmt"
 )
 var on bool=true
 func Exit(){
@@ -64,13 +65,25 @@ func startLoop(app *cli.App,rl *readline.Instance ,errorHandler func(err error))
 		if err != nil {
 			break
 		}
-		params:=strings.Split(line," ")
+		parts:=strings.Split(line,"\"")
+		if len(parts)%2==0{
+			fmt.Println("sytax error(quotes)")
+			continue
+		}
 		args:=[]string{app.Name}
-		for _,param:=range params{
-			trimed:=strings.TrimSpace(param)
-			if trimed!=""{
-				args=append(args,trimed)
+		for i,part :=range parts{
+			if i%2==1{
+				args=append(args,part)
+			}else {
+				params:=strings.Split(part," ")
+				for _,param:=range params{
+					trimed:=strings.TrimSpace(param)
+					if trimed!=""{
+						args=append(args,trimed)
+					}
+				}
 			}
+
 		}
 		if len(args) >1 {
 			app.RunInside(args)
